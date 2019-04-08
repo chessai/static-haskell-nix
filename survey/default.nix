@@ -393,6 +393,34 @@ let
 
   openssl_static = pkgs.openssl.override { static = true; };
 
+  cyrus_sasl_static = pkgs.cyrus_sasl.override { static = true; };
+
+  rdkafka_static = (pkgs.rdkafka.override {
+    zlib = pkgs.zlib.static;
+    openssl = openssl_static;
+    #cyrus_sasl = cyrus_sasl_static;
+  }).overrideAttrs (old: {
+    dontDisableStatic = true;
+    nativeBuildInputs = old.nativeBuildInputs ++ [
+      pkgs.zlib
+      # openssl_static above does not contain a bunch of header files,
+      # which causes rdkafka to fail hard.
+      pkgs.openssl
+    ];
+    configureFlagsArray = [
+      #"STATIC_LIB_zlib = ${pkgs.zlib.static.outPath}/lib/libz.a "
+      "--enable-static "
+      "--disable-ssl "
+      #--disable-lz4
+      #--disable-ssl
+      #--disable-sasl
+      #"--cc=musl-gcc"
+      #"--enable-static"
+      #"--help"
+      #"STATIC_LIB_openssl = ${openssl_static.outPath}/lib/foo"
+    ];
+  });
+  
   curl_static = (pkgs.curl.override {
     nghttp2 = nghttp2_static;
     zlib = pkgs.zlib.static;
@@ -500,6 +528,13 @@ let
       # For https://github.com/BurntSushi/erd/issues/40
       # As of writing, not in Stackage
       erd = doJailbreak super.erd;
+
+      hw-kafka-client = (self.callCabal2nix "hw-kafka-client" (pkgs.fetchFromGitHub {
+        owner = "haskell-works";
+        repo = "hw-kafka-client";
+        rev = "0d8f9ea11de408c1c10dd6a86fccac385d468270";
+        sha256 = "13xxlg65pwrnf0h89r9cn0kzh9s9my791314r09yd0fyla71bqpa";
+      }) {}).override { rdkafka = rdkafka_static; };
 
       postgresql-libpq = super.postgresql-libpq.override { postgresql = postgresql_static; };
 
@@ -819,4 +854,5 @@ in
     inherit haskellPackagesWithFailingStackageTestsDisabled;
     inherit haskellPackagesWithLibsReadyForStaticLinking;
     inherit haskellPackages;
+    inherit rdkafka_static; inherit openssl_static; inherit curl_static;
   }
