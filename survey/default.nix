@@ -409,14 +409,8 @@ let
     ];
     STATIC_LIB_zlib="${pkgs.zlib.static.outPath}/lib/libz.a";
     configureFlags = [
-      #"--help"
       "--enable-static"
       "--enable-werror"
-      #"--disable-lz4"
-      #"--disable-ssl"
-      #"--disable-sasl"
-      #"--cc=musl-gcc"
-      #"STATIC_LIB_openssl = ${openssl_static.outPath}/lib/foo"
     ];
   });
   
