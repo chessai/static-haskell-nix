@@ -407,16 +407,15 @@ let
       # which causes rdkafka to fail hard.
       pkgs.openssl
     ];
-    configureFlagsArray = [
-      #"STATIC_LIB_zlib = ${pkgs.zlib.static.outPath}/lib/libz.a "
-      "--enable-static "
-      "--disable-ssl "
-      #--disable-lz4
-      #--disable-ssl
-      #--disable-sasl
-      #"--cc=musl-gcc"
-      #"--enable-static"
+    STATIC_LIB_zlib="${pkgs.zlib.static.outPath}/lib/libz.a";
+    configureFlags = [
       #"--help"
+      "--enable-static"
+      "--enable-werror"
+      #"--disable-lz4"
+      #"--disable-ssl"
+      #"--disable-sasl"
+      #"--cc=musl-gcc"
       #"STATIC_LIB_openssl = ${openssl_static.outPath}/lib/foo"
     ];
   });
@@ -529,12 +528,14 @@ let
       # As of writing, not in Stackage
       erd = doJailbreak super.erd;
 
-      hw-kafka-client = (self.callCabal2nix "hw-kafka-client" (pkgs.fetchFromGitHub {
+      hw-kafka-client = addStaticLinkerFlagsWithPkgconfig ((self.callCabal2nix "hw-kafka-client" (pkgs.fetchFromGitHub {
         owner = "haskell-works";
         repo = "hw-kafka-client";
         rev = "0d8f9ea11de408c1c10dd6a86fccac385d468270";
         sha256 = "13xxlg65pwrnf0h89r9cn0kzh9s9my791314r09yd0fyla71bqpa";
-      }) {}).override { rdkafka = rdkafka_static; };
+      }) {}).override { rdkafka = rdkafka_static; })
+      [ openssl_static pkgs.zlib.static ]
+      "--libs openssl" ;
 
       postgresql-libpq = super.postgresql-libpq.override { postgresql = postgresql_static; };
 
