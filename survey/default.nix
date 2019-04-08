@@ -523,10 +523,10 @@ let
       erd = doJailbreak super.erd;
 
       hw-kafka-client = addStaticLinkerFlagsWithPkgconfig ((self.callCabal2nix "hw-kafka-client" (pkgs.fetchFromGitHub {
-        owner = "haskell-works";
+        owner = "chessai";
         repo = "hw-kafka-client";
-        rev = "0d8f9ea11de408c1c10dd6a86fccac385d468270";
-        sha256 = "13xxlg65pwrnf0h89r9cn0kzh9s9my791314r09yd0fyla71bqpa";
+        rev = "ea4802f944fdbc27bde31348395a4fe2cdfdf78a";
+        sha256 = "19z5nd0gx5ls80kjns545y4vvfm4bf528abyiv6shksj2r1nhi1l";
       }) {}).override { rdkafka = rdkafka_static; })
       [ openssl_static pkgs.zlib.static ]
       "--libs openssl" ;
